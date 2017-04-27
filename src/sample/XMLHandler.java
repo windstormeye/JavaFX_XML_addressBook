@@ -49,43 +49,22 @@ public class XMLHandler {
         return node;
     }
 
-    public void changeMsgWithArr (Document document, String changeArrMsg, String arr, String changeNode, String changeStr) {
-        Element studentMsgElement = document.getRootElement();
-        List students = studentMsgElement.elements();
-        for (int i = 0; i < students.size(); i++) {
-            Element 学生 = (Element) students.get(i);
-            if (changeArrMsg.equals(学生.attributeValue(arr))) {
-                for (Iterator it = 学生.elementIterator(); it.hasNext();) {
-                    Element node = (Element) it.next();
-                    String type = node.getName();
-                    if (changeNode.equals(type)) {
-                        node.setText(changeStr);
+    public Element searchNodeMsg (Document document, String searchStr) {
+        Element rootElement = document.getRootElement();    // 拿到文件树的根节点
+        List persons = rootElement.elements();
+        // 遍历整个链表
+        for (int i = 0; i < persons.size(); i++) {
+            Element person = (Element) persons.get(i);
+            for (Iterator it = person.elementIterator(); it.hasNext();) {
+                Element node = (Element) it.next();
+                if (node.getName().equals("name")) {
+                    if (node.getText().equals(searchStr)) {
+                        return person;
                     }
                 }
             }
         }
-    }
-
-
-    public  void deleteAttritude(Document document, String parentNode, String deleteArr) {
-        // 循环遍历删除"年级"子元素
-        Element studentMsgElement = document.getRootElement();
-        for (Object obj : studentMsgElement.elements(parentNode)) {
-            Element GRADE = (Element)obj;
-            Attribute nameAttr = GRADE.attribute(deleteArr);
-            GRADE.remove(nameAttr);
-        }
-    }
-    public void deleteElement(Document document, String parentNode, String deleteNode) {
-        // 循环遍历删除"年级"子元素
-        Element studentMsgElement = document.getRootElement();
-        for (Object obj : studentMsgElement.elements(parentNode)) {
-            Element GRADE = (Element)obj;
-            Element gradeEle = GRADE.element(deleteNode);
-            gradeEle.getParent().remove(gradeEle);
-            Attribute nameAttr = GRADE.attribute("性别");
-            GRADE.remove(nameAttr);
-        }
+        return null;
     }
 
     public String outputMethon(Document document){

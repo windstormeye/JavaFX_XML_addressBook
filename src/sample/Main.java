@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -12,21 +11,19 @@ import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.dom4j.Document;
+import org.dom4j.Element;
 import org.dom4j.Node;
 import javafx.stage.Modality;
 import javafx.scene.layout.VBox;
 
 
-
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -34,19 +31,9 @@ public class Main extends Application {
     private final TableView<xmlMsg> table = new TableView<>();
     private final ObservableList<xmlMsg> data =
             FXCollections.observableArrayList(
-                    new xmlMsg("姓名", "性别", "年龄", "电话号码")
+                    new xmlMsg("", "", "", "")
             );
-    final HBox hb = new HBox();
-
     private Document document;
-
-    public Document getDocument() {
-        return document;
-    }
-
-    public void setDocument(Document document) {
-        this.document = document;
-    }
 
     public static void main(String[] args) {
         launch(args);
@@ -65,9 +52,61 @@ public class Main extends Application {
         stage.setTitle("班级同学通讯录");
         stage.setScene(new Scene(gridOfHome, 460, 450));
 
-        final Label label = new Label("做个毛通讯录");
-        label.setFont(new Font("Arial", 20));
-        gridOfHome.add(label, 0, 0);
+        TextField searchTex = new TextField();
+        searchTex.setPromptText("输入需要查找的内容");
+        gridOfHome.add(searchTex, 0, 0);
+
+        Button searchBtn = new Button("搜索");
+        gridOfHome.add(searchBtn, 1, 0);
+        searchBtn.setOnAction(event -> {
+            Label msgLabel = new Label("该同学的信息如下");
+            msgLabel.setFont(new Font("Arial", 20));
+            Label nameLabel = new Label();
+            Label genderLabel = new Label();
+            Label ageLabel = new Label();
+            Label phoneLabel = new Label();
+
+            XMLHandler xmlManager = new XMLHandler();
+            Element targetElement = xmlManager.searchNodeMsg(document, searchTex.getText());
+            for (Iterator it = targetElement.elementIterator(); it.hasNext();) {
+                Element node = (Element) it.next();
+                switch (node.getName()) {
+                    case "name":
+                        nameLabel.setText("姓名: " + node.getText()); break;
+                    case "gender":
+                        genderLabel.setText("性别: " + node.getText()); break;
+                    case "age":
+                        ageLabel.setText("年龄: " +  node.getText()); break;
+                    case "phone":
+                        phoneLabel.setText("电话: " + node.getText()); break;
+                }
+            }
+
+            Stage window = new Stage();
+            window.setTitle("提示");
+            //modality要使用Modality.APPLICATION_MODEL
+            window.initModality(Modality.APPLICATION_MODAL);
+            window.setMinWidth(200);
+            window.setMinHeight(200);
+
+            Button btn = new Button("确定");
+            btn.setOnAction(aaa -> window.close());
+
+            VBox vBox = new VBox();
+            vBox.getChildren().addAll(nameLabel, genderLabel, ageLabel, phoneLabel);
+            vBox.setSpacing(5);
+
+            GridPane gridOfDelete = new GridPane();
+            gridOfDelete.setPadding(new Insets(25, 10, 25, 25));
+            gridOfDelete.add(msgLabel, 0, 0);
+            gridOfDelete.add(vBox, 0, 1);
+            gridOfDelete.add(btn, 1 , 2);
+
+            Scene scene = new Scene(gridOfDelete);
+            window.setScene(scene);
+            //使用showAndWait()先处理这个窗口，而如果不处理，main中的那个窗口不能响应
+            window.showAndWait();
+        });
 
         table.setEditable(true);
         table.setPrefSize(200, 350);
@@ -162,6 +201,7 @@ public class Main extends Application {
             addPhone.clear();
         });
 
+        HBox hb = new HBox();
         hb.getChildren().addAll(addName, addGender, addAge, addPhone,addButton);
         hb.setSpacing(3);
 
@@ -239,7 +279,6 @@ public class Main extends Application {
 
         table.setOnKeyPressed(event -> {
             if(event.getCode() == KeyCode.BACK_SPACE){
-
                 Stage window = new Stage();
                 window.setTitle("提示");
                 //modality要使用Modality.APPLICATION_MODEL
@@ -259,8 +298,6 @@ public class Main extends Application {
                 HBox hBox = new HBox();
                 hBox.getChildren().addAll(cancelButton, sureButton);
                 hBox.setSpacing(10);
-
-
 
                 GridPane gridOfDelete = new GridPane();
                 gridOfDelete.setAlignment(Pos.CENTER);
